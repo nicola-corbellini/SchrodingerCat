@@ -1,9 +1,16 @@
-import os
+import time
 import streamlit as st
+import cheshire_cat_api as ccat
 from utils.zotero_downloader import ZoteroDownloader
-from utils.pdf_loader import PDFLoader
-from utils.text_processor import TextProcessor
-from utils.query_processor import QueryProcessor
+
+
+def on_message(message):
+    pass
+
+
+config = ccat.Config(port=80, user_id="streamlit")
+cat = ccat.CatClient(config, on_message=on_message)
+
 
 # Function to reset the application's state
 def reset_application_state():
@@ -24,16 +31,24 @@ base_dir = "data/zotero_papers"
 zotero_user_id = st.text_input("Enter Zotero User ID")
 zotero_api_key = st.text_input("Enter Zotero API Key", type="password")
 download_option = st.selectbox("Choose your Zotero library:", ["Personal Library", "Groups"])
+openai_api_key = st.text_input("Enter OpenAI API Key", type="password")
 group_limit = None
 
 # Group download limit input field
 if download_option == "Groups":
     group_limit = st.number_input("Limit Group Downloads", min_value=1, max_value=10, value=2)
 
+# Button to connect to the Cat: upsert LLM and instantiate WebSocket
+if st.button('Connect Cheshire Cat'):
+    if not cat.is_ws_connected:
+        cat.connect_ws()
+    # TODO upsert llm
+
 # Button to initiate document sync from Zotero
 if st.button('Sync Documents'):
     zotero_downloader = ZoteroDownloader(zotero_user_id, zotero_api_key, base_dir)
     zotero_downloader.download_pdfs(group_limit=group_limit if download_option == "Groups" else None)
+    # TODO ingest files in the rabbit hole
     st.success('Your documents have been successfully synced.')
 
 # Input field for the user's query
@@ -41,22 +56,8 @@ question_text = st.text_area("Ask a question about your collection of documents.
 
 # Button to process the query
 if st.button('Get Answer'):
-    loader = PDFLoader(base_dir)
-    papers, success = loader.load_pdfs()
-    if not success:
-        st.write("Failed to load papers.")
-    else:
-        full_text, success = TextProcessor.process_text(papers)
-        if not success:
-            st.write("Failed to process text.")
-        else:
-            paper_chunks, success = TextProcessor.split_text(full_text)
-            if not success:
-                st.write("Failed to split text.")
-            else:
-                processor = QueryProcessor(paper_chunks, question_text)
-                result = processor.process_query()
-                st.write(result)
+    pass
+    # TODO send ws message and get the answer
 
 # Button to reset the application state
 if st.button('Reset Application'):
