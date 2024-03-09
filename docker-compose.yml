@@ -7,6 +7,8 @@ services:
     container_name: streamlit_app
     expose:
       - "5000"
+#    volumes:
+#      - ./data/zotero_papers:/app/
 
   cheshire-cat-vector-memory:
     image: qdrant/qdrant:v1.6.1
@@ -35,10 +37,10 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - DEBUG=${DEBUG:-true}
       - SAVE_MEMORY_SNAPSHOTS=${SAVE_MEMORY_SNAPSHOTS:-false}
-#    ports:
-#      - ${CORE_PORT:-1865}:80
-    expose:
-      - "80"
+    ports:
+      - ${CORE_PORT:-1865}:80
+#    expose:
+#      - "80"
     volumes:
       - ./cat/static:/app/cat/static
       - ./cat/plugins:/app/cat/plugins

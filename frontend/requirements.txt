@@ -1,2 +1,3 @@
 cheshire_cat_api
 streamlit
+pyzotero
